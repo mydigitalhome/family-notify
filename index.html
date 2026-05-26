@@ -82,8 +82,8 @@
         const mapUrl =
           `https://maps.google.com/?q=${lat},${lng}`;
 
-        const message =
-          `พ่อเสร็จธุระแล้ว\n${mapUrl}`;
+const message =
+  `พ่อเสร็จธุระแล้ว ${mapUrl}`;
 
         const response = await fetch(WEBHOOK_URL, {
 
