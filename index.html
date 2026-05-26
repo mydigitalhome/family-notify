@@ -67,19 +67,36 @@
 
     async function sendMessage() {
 
-      try {
+  try {
 
-        btn.className = 'sending';
-        btn.innerText = 'กำลังส่ง...';
+    btn.className = 'sending';
+    btn.innerText = 'กำลังส่ง...';
+
+    navigator.geolocation.getCurrentPosition(
+
+      async (position) => {
+
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        const mapUrl =
+          `https://maps.google.com/?q=${lat},${lng}`;
+
+        const message =
+          `พ่อเสร็จธุระแล้ว\n${mapUrl}`;
 
         const response = await fetch(WEBHOOK_URL, {
+
           method: 'POST',
+
           headers: {
             'Content-Type': 'application/json'
           },
+
           body: JSON.stringify({
-            message: 'พ่อเสร็จธุระแล้ว'
+            message: message
           })
+
         });
 
         if (response.ok) {
@@ -89,7 +106,10 @@
 
           if ('speechSynthesis' in window) {
 
-            const msg = new SpeechSynthesisUtterance('ส่งข้อความแล้ว');
+            const msg =
+              new SpeechSynthesisUtterance(
+                'ส่งข้อความแล้ว'
+              );
 
             msg.lang = 'th-TH';
 
@@ -97,7 +117,7 @@
           }
 
           if (navigator.vibrate) {
-            navigator.vibrate([200, 100, 200]);
+            navigator.vibrate([200,100,200]);
           }
 
           setTimeout(() => {
@@ -113,14 +133,25 @@
 
         }
 
-      } catch (err) {
+      },
+
+      () => {
 
         btn.className = 'error';
-        btn.innerText = 'ส่งไม่สำเร็จ';
+        btn.innerText = 'เปิด Location ก่อน';
 
       }
 
-    }
+    );
+
+  } catch (err) {
+
+    btn.className = 'error';
+    btn.innerText = 'ส่งไม่สำเร็จ';
+
+  }
+
+}
 
     btn.addEventListener('click', sendMessage);
 
