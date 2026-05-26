@@ -7,7 +7,6 @@
   <title>แจ้งลูก</title>
 
   <style>
-
     body {
       margin: 0;
       height: 100vh;
@@ -19,22 +18,15 @@
     }
 
     #notifyBtn {
-
       width: 90vw;
       height: 70vh;
-
       border: none;
       border-radius: 30px;
-
       font-size: 3rem;
       font-weight: bold;
-
       color: white;
-
       background: #16a34a;
-
       transition: 0.3s;
-
       box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
 
@@ -49,91 +41,90 @@
     #notifyBtn.error {
       background: #dc2626;
     }
-
   </style>
-
 </head>
-<body>
 
+<body>
   <button id="notifyBtn">
     แจ้งลูก
   </button>
 
   <script>
-
     const WEBHOOK_URL = 'https://hook.us2.make.com/88367jpln66uy6xcggx3jmrpq6ottcaz';
 
     const btn = document.getElementById('notifyBtn');
 
     async function sendMessage() {
-  try {
-    btn.className = 'sending';
-    btn.innerText = 'กำลังส่ง...';
+      try {
+        btn.className = 'sending';
+        btn.innerText = 'กำลังส่ง...';
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            try {
+              const lat = position.coords.latitude;
+              const lng = position.coords.longitude;
 
-          const mapUrl = `https://maps.google.com/?q=${lat},${lng}`;
-          const message = `พ่อเสร็จธุระแล้ว ${mapUrl}`;
+              const mapUrl = `https://maps.google.com/?q=${lat},${lng}`;
+              const message = `พ่อเสร็จธุระแล้ว ${mapUrl}`;
 
-          const response = await fetch(WEBHOOK_URL, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              messages: [
-                {
-                  type: 'text',
-                  text: message
+              const payload = JSON.stringify({
+                messages: [
+                  {
+                    type: 'text',
+                    text: message
+                  }
+                ]
+              });
+
+              const response = await fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  payload: payload
+                })
+              });
+
+              if (response.ok) {
+                btn.className = 'sent';
+                btn.innerText = 'ส่งสำเร็จแล้ว ✓';
+
+                if ('speechSynthesis' in window) {
+                  const msg = new SpeechSynthesisUtterance('ส่งข้อความแล้ว');
+                  msg.lang = 'th-TH';
+                  speechSynthesis.speak(msg);
                 }
-              ]
-            })
-          });
 
-          if (response.ok) {
-            btn.className = 'sent';
-            btn.innerText = 'ส่งสำเร็จแล้ว ✓';
+                if (navigator.vibrate) {
+                  navigator.vibrate([200, 100, 200]);
+                }
 
-            if ('speechSynthesis' in window) {
-              const msg = new SpeechSynthesisUtterance('ส่งข้อความแล้ว');
-              msg.lang = 'th-TH';
-              speechSynthesis.speak(msg);
+                setTimeout(() => {
+                  btn.className = '';
+                  btn.innerText = 'แจ้งลูก';
+                }, 5000);
+              } else {
+                throw new Error();
+              }
+            } catch (err) {
+              btn.className = 'error';
+              btn.innerText = 'ส่งไม่สำเร็จ';
             }
-
-            if (navigator.vibrate) {
-              navigator.vibrate([200, 100, 200]);
-            }
-
-            setTimeout(() => {
-              btn.className = '';
-              btn.innerText = 'แจ้งลูก';
-            }, 5000);
-          } else {
-            throw new Error();
+          },
+          () => {
+            btn.className = 'error';
+            btn.innerText = 'เปิด Location ก่อน';
           }
-        } catch (err) {
-          btn.className = 'error';
-          btn.innerText = 'ส่งไม่สำเร็จ';
-        }
-      },
-      () => {
+        );
+      } catch (err) {
         btn.className = 'error';
-        btn.innerText = 'เปิด Location ก่อน';
+        btn.innerText = 'ส่งไม่สำเร็จ';
       }
-    );
-  } catch (err) {
-    btn.className = 'error';
-    btn.innerText = 'ส่งไม่สำเร็จ';
-  }
-}
+    }
 
     btn.addEventListener('click', sendMessage);
-
   </script>
-
 </body>
 </html>
