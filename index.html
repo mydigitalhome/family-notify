@@ -66,91 +66,69 @@
     const btn = document.getElementById('notifyBtn');
 
     async function sendMessage() {
-
   try {
-
     btn.className = 'sending';
     btn.innerText = 'กำลังส่ง...';
 
     navigator.geolocation.getCurrentPosition(
-
       async (position) => {
+        try {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
 
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
+          const mapUrl = `https://maps.google.com/?q=${lat},${lng}`;
+          const message = `พ่อเสร็จธุระแล้ว ${mapUrl}`;
 
-        const mapUrl =
-          `https://maps.google.com/?q=${lat},${lng}`;
+          const response = await fetch(WEBHOOK_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              messages: [
+                {
+                  type: 'text',
+                  text: message
+                }
+              ]
+            })
+          });
 
-const message =
-  `พ่อเสร็จธุระแล้ว ${mapUrl}`;
+          if (response.ok) {
+            btn.className = 'sent';
+            btn.innerText = 'ส่งสำเร็จแล้ว ✓';
 
-        const response = await fetch(WEBHOOK_URL, {
+            if ('speechSynthesis' in window) {
+              const msg = new SpeechSynthesisUtterance('ส่งข้อความแล้ว');
+              msg.lang = 'th-TH';
+              speechSynthesis.speak(msg);
+            }
 
-          method: 'POST',
+            if (navigator.vibrate) {
+              navigator.vibrate([200, 100, 200]);
+            }
 
-          headers: {
-            'Content-Type': 'application/json'
-          },
-
-          body: JSON.stringify({
-            message: message
-          })
-
-        });
-
-        if (response.ok) {
-
-          btn.className = 'sent';
-          btn.innerText = 'ส่งสำเร็จแล้ว ✓';
-
-          if ('speechSynthesis' in window) {
-
-            const msg =
-              new SpeechSynthesisUtterance(
-                'ส่งข้อความแล้ว'
-              );
-
-            msg.lang = 'th-TH';
-
-            speechSynthesis.speak(msg);
+            setTimeout(() => {
+              btn.className = '';
+              btn.innerText = 'แจ้งลูก';
+            }, 5000);
+          } else {
+            throw new Error();
           }
-
-          if (navigator.vibrate) {
-            navigator.vibrate([200,100,200]);
-          }
-
-          setTimeout(() => {
-
-            btn.className = '';
-            btn.innerText = 'แจ้งลูก';
-
-          }, 5000);
-
-        } else {
-
-          throw new Error();
-
+        } catch (err) {
+          btn.className = 'error';
+          btn.innerText = 'ส่งไม่สำเร็จ';
         }
-
       },
-
       () => {
-
         btn.className = 'error';
         btn.innerText = 'เปิด Location ก่อน';
-
       }
-
     );
-
   } catch (err) {
-
     btn.className = 'error';
     btn.innerText = 'ส่งไม่สำเร็จ';
-
   }
-
 }
 
     btn.addEventListener('click', sendMessage);
